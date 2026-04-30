@@ -19,22 +19,40 @@ function App() {
 
   // Load structured data.json
   useEffect(() => {
-    axios.get(`${import.meta.env.BASE_URL}data.json`)
-      .then(res => {
-        const d = res.data;
-        setRawData(d);
+    const loadData = async () => {
+      const baseUrl = import.meta.env.BASE_URL || '/';
+      const candidates = [
+        `${baseUrl}data.json`,
+        './data.json',
+        '/FinAnalytica/data.json',
+      ];
 
-        // Default to first asset
-        if (d.assetSummaries && d.assetSummaries.length > 0) {
-          setSelectedAsset(d.assetSummaries[0].asset_name);
+      let lastError = null;
+      for (const url of candidates) {
+        try {
+          const res = await axios.get(url, {
+            headers: { Accept: 'application/json' },
+          });
+          const d = res.data;
+          setRawData(d);
+
+          // Default to first asset
+          if (d.assetSummaries && d.assetSummaries.length > 0) {
+            setSelectedAsset(d.assetSummaries[0].asset_name);
+          }
+          setLoading(false);
+          return;
+        } catch (err) {
+          lastError = err;
         }
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Failed to load data.json:", err);
-        setError("Failed to load data.json. Did you run `python dataseed.py`?");
-        setLoading(false);
-      });
+      }
+
+      console.error("Failed to load data.json:", lastError);
+      setError("Failed to load data.json. Please refresh in 1-2 minutes.");
+      setLoading(false);
+    };
+
+    loadData();
   }, []);
 
   // Unique asset names
