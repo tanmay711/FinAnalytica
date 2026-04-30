@@ -19,7 +19,7 @@ function App() {
 
   // Load structured data.json
   useEffect(() => {
-    axios.get('/data.json')
+    axios.get(`${import.meta.env.BASE_URL}data.json`)
       .then(res => {
         const d = res.data;
         setRawData(d);
